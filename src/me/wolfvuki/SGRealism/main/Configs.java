@@ -2,12 +2,9 @@ package me.wolfvuki.SGRealism.main;
 
 import java.io.File;
 
-import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
 
 public class Configs {
 
@@ -95,44 +92,13 @@ public class Configs {
 			}
 		}
 	}
-	//TODO: Add check for Arena file existence.
-	public void setAFileCoord1(PlayerInteractEvent e){
-		Player p = e.getPlayer();
-		if(core.setL1.contains(p)){
-			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
-				Location cb = e.getClickedBlock().getLocation();
-				AFile.set("X1", cb.getBlockX());
-				AFile.set("Y1", cb.getBlockY());
-				AFile.set("Z1", cb.getBlockZ());
-			}
-		}
-	}
-	
-	public void setAFileCoord2(PlayerInteractEvent e){
-		Player p = e.getPlayer();
-		if(core.setL2.contains(p)){
-			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
-				Location cb = e.getClickedBlock().getLocation();
-				AFile.set("X2", cb.getBlockX());
-				AFile.set("Y2", cb.getBlockY());
-				AFile.set("Z2", cb.getBlockZ());
-			}
-		}
-	}
-	
-	public void setAFileCenter(PlayerInteractEvent e){
-		Player p = e.getPlayer();
-		if(core.center.contains(p)){
-			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
-				Location cb = e.getClickedBlock().getLocation();
-				AFile.set("CX", cb.getBlockX());
-				AFile.set("CY", cb.getBlockY());
-				AFile.set("CZ", cb.getBlockZ());
-			}
-		}
-	}
 	
 	public FileConfiguration getArena(){
 		return AFile;
 	}
+	
+	public File getArenaFile(){
+		return Arena;
+	}
+	
 }

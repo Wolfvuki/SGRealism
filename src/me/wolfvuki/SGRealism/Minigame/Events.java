@@ -1,14 +1,21 @@
 package me.wolfvuki.SGRealism.Minigame;
 
+import java.io.File;
+
+import me.wolfvuki.SGRealism.main.Configs;
 import me.wolfvuki.SGRealism.main.SGAPI;
 import me.wolfvuki.SGRealism.main.SGRealism;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -16,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -27,6 +35,7 @@ public class Events implements Listener{
 	
 	private SGRealism core;
 	private SGAPI api;
+	private Configs conf;
 	
 	@EventHandler
 	public void onFall(EntityDamageEvent e){					//Player Falling
@@ -129,6 +138,93 @@ public class Events implements Listener{
 		}
 		if(core.playing.size() == 1){
 			api.End();
+		}
+	}
+	
+	//##############################################################################################
+	
+	@EventHandler
+	public void setSpawnPoint(PlayerInteractEvent e, Integer x){
+		if(core.setSP.contains(e.getPlayer())){
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				Location cb = e.getClickedBlock().getLocation();
+				File SpawnPoint = new File(core.getDataFolder() + File.separator + "Data" + File.separator + "SpawnPoints", x + ".yml");
+				if(!SpawnPoint.exists()){
+					try{
+						SpawnPoint.createNewFile();
+					} catch(Exception eba){
+						System.err.println("[SGR] Could not make spawnpoint " + x + " file.");
+						e.getPlayer().sendMessage(SGRealism.Tag + ChatColor.RED + "Error: Couldn't make spawnpoint file.");
+					}
+				}
+				FileConfiguration SPFile = YamlConfiguration.loadConfiguration(SpawnPoint);
+				SPFile.addDefault("X", 0);
+				SPFile.addDefault("Y", 0);
+				SPFile.addDefault("Z", 0);
+				SPFile.set("X", cb.getBlockX());
+				SPFile.set("Y", cb.getBlockX());
+				SPFile.set("Z", cb.getBlockX());
+				core.setSP.remove(e.getPlayer());
+			}
+		}
+	}
+
+	@EventHandler
+	public void setAFileCoord1(PlayerInteractEvent e){
+		Player p = e.getPlayer();
+		if(core.setL1.contains(p)){
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				Location cb = e.getClickedBlock().getLocation();
+				if(conf.getArenaFile().exists()){
+					conf.getArena().set("X1", cb.getBlockX());
+					conf.getArena().set("Y1", cb.getBlockY());
+					conf.getArena().set("Z1", cb.getBlockZ());
+					p.sendMessage(SGRealism.Tag + ChatColor.GREEN + "L1 successfully set.");
+					core.setL1.remove(p);
+				} else {
+					p.sendMessage(SGRealism.Tag + ChatColor.RED + "World must be set first.");
+					core.setL1.remove(p);
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void setAFileCoord2(PlayerInteractEvent e){
+		Player p = e.getPlayer();
+		if(core.setL2.contains(p)){
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				Location cb = e.getClickedBlock().getLocation();
+				if(conf.getArenaFile().exists()){
+					conf.getArena().set("X2", cb.getBlockX());
+					conf.getArena().set("Y2", cb.getBlockY());
+					conf.getArena().set("Z2", cb.getBlockZ());
+					p.sendMessage(SGRealism.Tag + ChatColor.GREEN + "L2 successfully set.");
+				} else {
+					p.sendMessage(SGRealism.Tag + ChatColor.RED + "World must be set first.");
+					core.setL2.remove(p);
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void setAFileCenter(PlayerInteractEvent e){
+		Player p = e.getPlayer();
+		if(core.center.contains(p)){
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				Location cb = e.getClickedBlock().getLocation();
+				if(conf.getArenaFile().exists()){
+					conf.getArena().set("CX", cb.getBlockX());
+					conf.getArena().set("CY", cb.getBlockY());
+					conf.getArena().set("CZ", cb.getBlockZ());
+					p.sendMessage(SGRealism.Tag + ChatColor.GREEN + "Center location was successfully set.");
+					core.center.remove(p);
+				} else {
+					p.sendMessage(SGRealism.Tag + ChatColor.RED + "World must be set first.");
+					core.center.remove(p);
+				}
+			}
 		}
 	}
 }

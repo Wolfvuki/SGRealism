@@ -236,4 +236,12 @@ public class Minigame implements Listener{
 		p.setAllowFlight(true);
 		p.setFlying(true);
 	}
+	
+	public void removeSpectator(Player p){
+		for(Player ww : Bukkit.getOnlinePlayers()){
+			ww.showPlayer(p);
+		}
+		p.setAllowFlight(false);
+		p.setFlying(false);
+	}
 }
