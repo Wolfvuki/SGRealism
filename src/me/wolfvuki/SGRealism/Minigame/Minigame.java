@@ -36,18 +36,16 @@ public class Minigame implements Listener{
 	private Random rnd = new Random();
 	private int timepassed = 0;
 	
-	@SuppressWarnings("deprecation")
 	public void PreGame(){
 		PotionEffect adr1 = new PotionEffect(PotionEffectType.SPEED, 10, 1);
 		PotionEffect adr2 = new PotionEffect(PotionEffectType.SPEED, 10, 2);
-		for(String players : core.playing){
+		for(Player players : core.playing){
 			core.pregame.add(players);
 		}
-		for(String pgplayer : core.pregame){
-			Player p = Bukkit.getPlayer(pgplayer);
-			p.sendMessage(Tagg + ChatColor.AQUA + "Pregame session started.");
-			p.sendMessage(Tagg + ChatColor.AQUA + "The game is currently making final preparations.");
-			p.sendMessage(Tagg + ChatColor.DARK_RED + "You may move after 10 seconds have passed.");
+		for(Player pg : core.pregame){
+			pg.sendMessage(Tagg + ChatColor.AQUA + "Pregame session started.");
+			pg.sendMessage(Tagg + ChatColor.AQUA + "The game is currently making final preparations.");
+			pg.sendMessage(Tagg + ChatColor.DARK_RED + "You may move after 10 seconds have passed.");
 		}
 		for(int x = 0; x <= 40; x++){
 			if(x <= 40){
@@ -55,28 +53,27 @@ public class Minigame implements Listener{
 				public void run() { 
 					countdown--;
 				}}, 20L);
-			for(String pgp : core.playing){
-				Player pp = Bukkit.getPlayer(pgp);
+			for(Player pgp : core.playing){
 				if(countdown == 30){
 					core.starting.clear();
-					pp.sendMessage(Tagg + ChatColor.DARK_GREEN + "You may now move.");
-					pp.sendMessage(Tagg + ChatColor.DARK_PURPLE + "The game will start in 30 seconds. Get ready.");
-					pp.addPotionEffect(adr1);
+					pgp.sendMessage(Tagg + ChatColor.DARK_GREEN + "You may now move.");
+					pgp.sendMessage(Tagg + ChatColor.DARK_PURPLE + "The game will start in 30 seconds. Get ready.");
+					pgp.addPotionEffect(adr1);
 				}
 				if(countdown == 15){
-					pp.sendMessage(Tagg + ChatColor.DARK_BLUE + "15 seconds remaining...");
+					pgp.sendMessage(Tagg + ChatColor.DARK_BLUE + "15 seconds remaining...");
 				}
 				if(countdown <= 10){
 					if(countdown == 10){
-						pp.addPotionEffect(adr2);
+						pgp.addPotionEffect(adr2);
 					}
-					pp.sendMessage(Tagg + ChatColor.DARK_RED + countdown + "...");
+					pgp.sendMessage(Tagg + ChatColor.DARK_RED + countdown + "...");
 				}
 				if(countdown <= 0){
-					pp.removePotionEffect(PotionEffectType.SPEED);
+					pgp.removePotionEffect(PotionEffectType.SPEED);
 					core.starting.clear();
-					pp.sendMessage(Tagg + ChatColor.GOLD + "Time's up.");
-					pp.sendMessage(Tagg + ChatColor.GREEN + "Let the games begin...");
+					pgp.sendMessage(Tagg + ChatColor.GOLD + "Time's up.");
+					pgp.sendMessage(Tagg + ChatColor.GREEN + "Let the games begin...");
 					this.Start();
 					break;
 				}
@@ -86,7 +83,6 @@ public class Minigame implements Listener{
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void Start(){
 		Bukkit.getWorld(conf.getArena().getString("World")).playSound(
 				new Location(Bukkit.getWorld(conf.getArena().getString("World")),conf.getArena().getDouble("X1"),conf.getArena().getDouble("Y1"),conf.getArena().getDouble("Z1")), 
@@ -96,8 +92,7 @@ public class Minigame implements Listener{
 				public void run() { 
 					timepassed++;
 				}}, 0L, 20L);
-			for(String all : core.playing){
-				Player pla = Bukkit.getPlayer(all);
+			for(Player pla : core.playing){
 				if(timepassed == 300){
 					pla.sendMessage(Tagg + ChatColor.GOLD + "5 minutes remaining...");
 				} else
@@ -118,14 +113,13 @@ public class Minigame implements Listener{
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void returnPlayers(){
-		for(String p : core.playing){
-			Player bp = Bukkit.getPlayer(p);
-			bp.teleport(core.locations.get(p));
+		for(Player bp : core.playing){
+			bp.teleport(core.locations.get(bp));
 		}
 	}
 	
+	//Create a collection of all the chests in the game
 	public void listChests(){
 		int x1 = conf.getArena().getInt("X1");
 		int y1 = conf.getArena().getInt("Y1");
@@ -152,7 +146,7 @@ public class Minigame implements Listener{
 			Inventory inv = chest.getInventory();
 			int numitem = rnd.nextInt(8);
 			for(int x = 0; x <= numitem; x++){
-				int rnditem = rnd.nextInt(154);
+				int rnditem = rnd.nextInt(155);
 				if(rnditem <= 50){									//Offensive
 					if(rnditem <= 6){
 						inv.addItem(new ItemStack(Material.GOLD_SWORD,1));

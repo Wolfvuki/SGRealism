@@ -19,15 +19,17 @@ public class SGRealism extends JavaPlugin implements Listener{
 	private SGAPI api;
 	private Configs conf;
 
-	public List<String> playing;
-	public List<String> joining; //Add join code
-	public List<String> pregame;
-	public List<String> starting;
-	public List<String> spectating;
+	public List<Player> playing;
+	public List<Player> joining; //Add join code
+	public List<Player> pregame;
+	public List<Player> starting;
+	public List<Player> spectating;
 	public List<Player> setL1;
 	public List<Player> setL2;
 	public List<Player> setSP;
 	public List<Player> center;
+	public Location[] spawnpoints;
+	public Location specspawn;
 	public HashMap<Player, Location> locations;
 
 	public static String Tag = ChatColor.GOLD + "[" + ChatColor.AQUA + "SGR" + ChatColor.GOLD + "] ";
@@ -35,7 +37,7 @@ public class SGRealism extends JavaPlugin implements Listener{
 	File Data = new File(this.getDataFolder() + File.separator + "Data");
 	File SpawnPoints = new File(this.getDataFolder() + File.separator + "Data" + File.separator + "SpawnPoints");
 	File Points = new File(this.getDataFolder() + File.separator + "Data" + File.separator + "Points");
-	File TEMP = new File(this.getDataFolder() + File.separator + "TEMP");
+	File Inv = new File(this.getDataFolder() + File.separator + "Inventories");
 	
 	@Override
 	public void onEnable(){
@@ -48,7 +50,9 @@ public class SGRealism extends JavaPlugin implements Listener{
 	
 	@Override
 	public void onDisable(){
-		//Return players if server restarts (set to prev. location and set to original inventory)
+		/*	Return players if server restarts (set to prev. location and set to original inventory)
+		 *  Clear temp (clear lists, arrays, inv and loc files, etc.)
+		 */
 	}
 	
 	public void Setup(){
@@ -56,23 +60,28 @@ public class SGRealism extends JavaPlugin implements Listener{
 		if(!Data.exists()){
 			System.out.println("[SGR] Creating Data folder...");
 			Data.mkdirs();
+			System.out.println("[SGR] Data folder created.");
 		}
 		if(!SpawnPoints.exists()){
 			System.out.println("[SGR] Creating SpawnPoints folder...");
 			SpawnPoints.mkdirs();
+			System.out.println("[SGR] SpawnPoints folder created.");
 		}
 		if(!Points.exists()){
 			System.out.println("[SGR] Creating Points folder...");
 			Points.mkdirs();
+			System.out.println("[SGR] Points folder created.");
 		}
-		if(!TEMP.exists()){
-			System.out.println("[SGR] Creating Points folder...");
-			TEMP.mkdirs();
+		if(!Inv.exists()){
+			System.out.println("[SGR] Creating Inventories folder...");
+			Inv.mkdirs();
+			System.out.println("[SGR] Inventories folder created.");
 		}
 		conf.onSetup();
 		System.out.println("[SGR] Setup process complete.");
 	}
 	
+	//TODO: Finish commands
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if(!(sender instanceof Player)){
 			System.out.println("[SGR] Only players may use these commands!");
@@ -91,7 +100,7 @@ public class SGRealism extends JavaPlugin implements Listener{
 					p.sendMessage(ChatColor.GOLD + "/SGR Setup World - Set the World of the Arena.");
 					p.sendMessage(ChatColor.GOLD + "/SGR Setup L1 - Set the 1st Corner of the Map.");
 					p.sendMessage(ChatColor.GOLD + "/SGR Setup L2 - Set the 2nd Corner of the Map.");
-					p.sendMessage(ChatColor.GOLD + "/SGR Setup SP # - Set SpawnPoint #.");
+					p.sendMessage(ChatColor.GOLD + "/SGR Setup SP # - Set SpawnPoint <1-20>.");
 					p.sendMessage(ChatColor.GOLD + "/SGR Setup Help - How to setup the Arena.");
 				}
 				return true;
@@ -100,7 +109,7 @@ public class SGRealism extends JavaPlugin implements Listener{
 					api.addPlayer(p);
 					return true;
 				} else if(args[0].equalsIgnoreCase("leave")){
-					api.removePlayer2(p);
+					api.removePlayer(p,true);
 					return true;
 				} else if(args[0].equalsIgnoreCase("spectate")){
 					p.sendMessage(Tag + ChatColor.DARK_GRAY + "/SGR Spectate [Join | Leave]");
@@ -109,14 +118,24 @@ public class SGRealism extends JavaPlugin implements Listener{
 			} else if(args.length == 2){
 				if(args[0].equalsIgnoreCase("spectate")){
 					if(args[1].equalsIgnoreCase("join")){
-						if(!this.spectating.contains(p.getName())){
+						if(!this.spectating.contains(p)){
 							api.addSpectator(p);
 							return true;
 						}
 					} else if(args[1].equalsIgnoreCase("leave")){
-						if(this.spectating.contains(p.getName())){
+						if(this.spectating.contains(p)){
 							api.removeSpectator(p);
 							return true;
+						}
+					}
+				} else if(args[0].equalsIgnoreCase("setup")){
+					if(p.isOp()){
+						if(args[1].equalsIgnoreCase("world")){
+							if(!conf.getArenaFile().exists()){
+								conf.createAFile(p);
+							} else {
+								conf.getArena().set("World", p.getLocation().getWorld().getName());
+							}
 						}
 					}
 				}

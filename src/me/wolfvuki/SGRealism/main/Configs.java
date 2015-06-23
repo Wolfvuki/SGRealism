@@ -70,6 +70,18 @@ public class Configs {
 		CFile.addDefault(admin + "Use Admin Permission instead of OP", false);
 		CFile.addDefault(admin + "Admin Permission", "SGR.admin");
 	}
+	
+	public void createInvFile(Player p){
+		File Inv = new File(core.getDataFolder() + File.separator + "Inventories", p.getName() + ".yml");
+		FileConfiguration InvFile = YamlConfiguration.loadConfiguration(Inv);
+		try{
+			Inv.createNewFile();
+		} catch(Exception e){
+			System.err.println("[SGR] Error: Could not create " + p.getName() + "'s Inventory file.");
+			e.printStackTrace();
+		}
+		InvFile.addDefault("Inventory", p.getInventory().getContents());
+	}
 
 	public void createAFile(Player p){
 		if(!Arena.exists()){

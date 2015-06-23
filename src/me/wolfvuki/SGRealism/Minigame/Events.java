@@ -6,7 +6,6 @@ import me.wolfvuki.SGRealism.main.Configs;
 import me.wolfvuki.SGRealism.main.SGAPI;
 import me.wolfvuki.SGRealism.main.SGRealism;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,6 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -31,6 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+@SuppressWarnings("deprecation")
 public class Events implements Listener{
 	
 	private SGRealism core;
@@ -41,7 +42,7 @@ public class Events implements Listener{
 	public void onFall(EntityDamageEvent e){					//Player Falling
 		if(e.getEntity() instanceof Player){
 			Player p = (Player)e.getEntity();
-			if(core.playing.contains(p.getName())){
+			if(core.playing.contains(p)){
 				if(e.getCause() == DamageCause.FALL){
 					p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 2));
 					p.sendMessage(ChatColor.RED + "You've injured your legs!");
@@ -52,7 +53,7 @@ public class Events implements Listener{
 	
 	@EventHandler
 	public void onBreakBlock(BlockBreakEvent e){				//Break Blocks
-		if(core.playing.contains(e.getPlayer().getName())){
+		if((core.playing.contains(e.getPlayer()))||(core.spectating.contains(e.getPlayer()))){
 			e.setCancelled(true);
 		}
 	}
@@ -62,7 +63,7 @@ public class Events implements Listener{
 		if(e.getDamager() instanceof Player){
 			if(e.getEntity() instanceof Player){
 				Player dmgr = (Player)e.getDamager();
-				if(core.pregame.contains(dmgr.getName())){
+				if(core.pregame.contains(dmgr)){
 					e.setCancelled(true);
 				}
 			}
@@ -71,7 +72,7 @@ public class Events implements Listener{
 	
 	@EventHandler
 	public void onStartMove(PlayerMoveEvent e){					//Player Movement
-		if(core.starting.contains(e.getPlayer().getName())){
+		if(core.starting.contains(e.getPlayer())){
 			if(e.getTo().getBlockX() != e.getFrom().getBlockX()){
 				e.setCancelled(true);
 			}
@@ -86,14 +87,14 @@ public class Events implements Listener{
 	
 	@EventHandler
 	public void onStartInv(PlayerDropItemEvent e){				//Dropping Items
-		if(core.starting.contains(e.getPlayer().getName())){
+		if(core.starting.contains(e.getPlayer())){
 			e.setCancelled(true);
 		}
 	}
 	
 	@EventHandler
 	public void onDrinkPotion(PlayerItemConsumeEvent e){		//Drinking Potions
-		if(core.pregame.contains(e.getPlayer().getName())){
+		if(core.pregame.contains(e.getPlayer())){
 			if(e.getItem().getType() == Material.POTION){
 				e.setCancelled(true);
 				e.getPlayer().sendMessage(SGRealism.Tag + ChatColor.DARK_RED + "You may not consume potions during the pregame session.");
@@ -105,7 +106,7 @@ public class Events implements Listener{
 	public void onThrowPotion(PotionSplashEvent e){				//Throwing Potions
 		if(e.getPotion().getShooter() instanceof Player){
 			Player p = (Player)e.getPotion().getShooter();
-			if(core.pregame.contains(p.getName())){
+			if(core.pregame.contains(p)){
 				e.setCancelled(true);
 			}
 		}
@@ -113,35 +114,48 @@ public class Events implements Listener{
 	
 	@EventHandler
 	public void onWater(PlayerItemConsumeEvent e){				//Drink "Water"
-		if(core.playing.contains(e.getPlayer().getName())){
+		if(core.playing.contains(e.getPlayer())){
 			ItemStack gw = new ItemStack(Material.POTION);
 			ItemMeta imgw = gw.getItemMeta();
 			imgw.setDisplayName("Water");
 			if(e.getItem() == gw){
 				double h = e.getPlayer().getHealth();
-				if(h <= 20){
+				if(h < 20){
 					e.getPlayer().setHealth((double)1 + h);
 				}
 			}
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onDeath(PlayerDeathEvent e){					//Player Death
-		if(core.playing.contains(e.getEntity().getName())){
-			api.removePlayer(e.getEntity(), ChatColor.RED + "You died.");
-		}
-		for(String all : core.playing){
-			Bukkit.getPlayer(all).sendMessage(SGRealism.Tag + ChatColor.GOLD + e.getEntity() + " died.");
-			Bukkit.getPlayer(all).sendMessage(SGRealism.Tag + ChatColor.AQUA + core.playing.size() + ChatColor.BLUE + " players remaining.");
+		if(core.playing.contains(e.getEntity())) api.removePlayer(e.getEntity(), ChatColor.RED + "You died.");
+		for(Player all : core.playing){
+			all.sendMessage(SGRealism.Tag + ChatColor.GOLD + e.getEntity() + " died.");
+			all.sendMessage(SGRealism.Tag + ChatColor.AQUA + core.playing.size() + ChatColor.BLUE + " players remaining.");
 		}
 		if(core.playing.size() == 1){
 			api.End();
 		}
 	}
 	
-	//##############################################################################################
+	@EventHandler
+	public void onCmd(PlayerChatEvent e){
+		if(core.spectating.contains(e.getPlayer())){
+			if((e.getMessage().startsWith("/"))&&(!e.getMessage().equalsIgnoreCase("/spectator leave"))){
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(SGRealism.Tag + ChatColor.BLUE + "You must do /spectator leave before you do any commands.");
+			}
+		}
+	}
+	
+	/*
+	 * ##############################################################################################
+	 * #####################################Set location events######################################
+	 * ##############################################################################################
+	 */
+	
+	//TODO: Add check system to make sure spawnpoints are in the same world and area the arena is set to
 	
 	@EventHandler
 	public void setSpawnPoint(PlayerInteractEvent e, Integer x){
@@ -165,6 +179,7 @@ public class Events implements Listener{
 				SPFile.set("Y", cb.getBlockX());
 				SPFile.set("Z", cb.getBlockX());
 				core.setSP.remove(e.getPlayer());
+				e.getPlayer().sendMessage(SGRealism.Tag + ChatColor.GREEN + "Successfully set spawnpoint " + x);
 			}
 		}
 	}
